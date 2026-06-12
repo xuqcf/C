@@ -19,9 +19,16 @@
 #define munit_suite(name, tests)                                               \
   {(char *)(name), tests, NULL, 1, MUNIT_SUITE_OPTION_NONE}
 
-char *get_full_greeting(char *greeting, char *name, int size);
+int *allocate_scalar_array(int size, int multiplier);
 
 #define assert_int(a, op, b, msg) munit_assert_int(a, op, b)
+
+#undef munit_assert_not_null
+#define munit_assert_not_null(ptr, msg) munit_assert_ptr(ptr, !=, NULL)
+
+#undef munit_assert_int
+#define munit_assert_int(a, op, b, msg) munit_assert_type(int, "d", a, op, b)
+
 #undef assert_string_equal
 #define assert_string_equal(a, b, msg) munit_assert_string_equal(a, b)
 #undef assert_uint16

@@ -1,10 +1,20 @@
 #include "exercise.h"
-#include "munit.c"
 #include <stdio.h>
 #include <stdlib.h>
 
-char *get_full_greeting(char *greeting, char *name, int size) {
-  char full_greeting[100];
-  snprintf(full_greeting, 100, "%s %s", greeting, name);
-  return full_greeting;
+int *allocate_scalar_array(int size, int multiplier) {
+  int *allocation = malloc(size * sizeof(int));
+
+  if (allocation == NULL) {
+    return NULL;
+  }
+
+  int i = 0;
+
+  while (i < size) {
+    allocation[i] = i * multiplier;
+    i++;
+  }
+
+  return allocation;
 }
