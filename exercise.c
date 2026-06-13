@@ -1,20 +1,6 @@
-#include "exercise.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include "bootlib.h"
+#include <string.h>
 
-int *allocate_scalar_array(int size, int multiplier) {
-  int *allocation = malloc(size * sizeof(int));
-
-  if (allocation == NULL) {
-    return NULL;
-  }
-
-  int i = 0;
-
-  while (i < size) {
-    allocation[i] = i * multiplier;
-    i++;
-  }
-
-  return allocation;
+void swap(void *vp1, void *vp2, size_t size) {
+  // ?
 }

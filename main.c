@@ -1,71 +1,64 @@
+#include "bootlib.h"
 #include "exercise.h"
 #include "munit.h"
+#include <stdint.h>
 
-munit_case(RUN, test_allocate_scalar_array_size, {
-  int size = 5;
-  int multiplier = 2;
-  int *result = allocate_scalar_array(size, multiplier);
-  munit_assert_not_null(result, "Function should return a non-null pointer");
-  free(result);
+typedef struct CoffeeShop {
+  uint64_t quality;
+  uint64_t taste;
+  uint64_t branding;
+} coffee_shop_t;
+
+munit_case(RUN, test_generic_ints, {
+  int i1 = 1234;
+  int i2 = 5678;
+
+  swap(&i1, &i2, sizeof(int));
+
+  assert_int(i1, ==, 5678, "i1 should be i2's original value");
+  assert_int(i2, ==, 1234, "i2 should be i1's original value");
+  assert_true(boot_all_freed());
 });
 
-munit_case(RUN, test_allocate_scalar_array_values, {
-  int size = 5;
-  int multiplier = 2;
-  int *result = allocate_scalar_array(size, multiplier);
-  int expected[5];
-  expected[0] = 0;
-  expected[1] = 2;
-  expected[2] = 4;
-  expected[4] = 8;
-  for (int i = 0; i < size; i++) {
-    munit_assert_int(result[i], ==, expected[i],
-                     "Element does not match expected value");
-  }
-  free(result);
+munit_case(RUN, test_generic_strings, {
+  char *s1 = "dax";
+  char *s2 = "adam";
+
+  swap(&s1, &s2, sizeof(char *));
+  assert_string_equal(s1, "adam", "s1 should be s2's original value");
+  assert_string_equal(s2, "dax", "s2 should be s1's original value");
+  assert_true(boot_all_freed());
 });
 
-munit_case(SUBMIT, test_allocate_scalar_array_zero_multiplier, {
-  int size = 3;
-  int multiplier = 0;
-  int *result = allocate_scalar_array(size, multiplier);
-  for (int i = 0; i < size; i++) {
-    munit_assert_int(result[i], ==, 0,
-                     "All elements should be 0 with multiplier 0");
-  }
-  free(result);
-});
+munit_case(SUBMIT, test_generic_structs, {
+  coffee_shop_t sbucks = {2, 3, 4};
+  coffee_shop_t terminalshop = {10, 10, 10};
 
-munit_case(SUBMIT, test_allocate_too_much, {
-  int size = (64 * 1024 * 1024) / sizeof(int); // 64 MiB
-  int multiplier = 1;
-  int *result = allocate_scalar_array(size, multiplier);
-  // It was originally intended for a large allocation to fail and return NULL
-  // After a change to Emscripten compiler settings, the allocation may succeed
-  // In that case, we check values to make sure it isn't garbage
-  if (result != NULL) {
-    munit_assert_int(result[0], ==, 0, "First element should be 0");
-    munit_assert_int(result[size - 1], ==, size - 1,
-                     "Last element should match expected value");
-    free(result);
-  }
-  munit_assert_int(1, ==, 1,
-                   "Function should handle large allocations without crashing");
+  swap(&sbucks, &terminalshop, sizeof(coffee_shop_t));
+
+  assert_int(sbucks.quality, ==, 10,
+             "sbucks.quality should be terminalshop.quality");
+  assert_int(sbucks.taste, ==, 10, "sbucks.taste should be terminalshop.taste");
+  assert_int(sbucks.branding, ==, 10,
+             "sbucks.branding should be terminalshop.branding");
+
+  assert_int(terminalshop.quality, ==, 2,
+             "terminalshop.quality should be sbucks.quality");
+  assert_int(terminalshop.taste, ==, 3,
+             "terminalshop.taste should be sbucks.taste");
+  assert_int(terminalshop.branding, ==, 4,
+             "terminalshop.branding should be sbucks.branding");
 });
 
 int main() {
   MunitTest tests[] = {
-      munit_test("/test_allocate_scalar_array_size",
-                 test_allocate_scalar_array_size),
-      munit_test("/test_allocate_scalar_array_values",
-                 test_allocate_scalar_array_values),
-      munit_test("/test_allocate_scalar_array_zero_multiplier",
-                 test_allocate_scalar_array_zero_multiplier),
-      munit_test("/test_allocate_too_much", test_allocate_too_much),
+      munit_test("/generic_ints", test_generic_ints),
+      munit_test("/generic_strings", test_generic_strings),
+      munit_test("/generic_struct", test_generic_structs),
       munit_null_test,
   };
 
-  MunitSuite suite = munit_suite("allocate_scalar_array", tests);
+  MunitSuite suite = munit_suite("swap", tests);
 
   return munit_suite_main(&suite, NULL, 0, NULL);
 }
