@@ -22,6 +22,7 @@
 void swap(void *vp1, void *vp2, size_t size);
 #define assert_int(a, op, b, msg) munit_assert_int(a, op, b, msg)
 #define assert_true(expr) munit_assert_true(expr)
+#define assert_ptr_not_null(ptr, msg) munit_assert_not_null(ptr, msg)
 
 #undef munit_assert_not_null
 #define munit_assert_not_null(ptr, msg) munit_assert_ptr(ptr, !=, NULL)

@@ -1,64 +1,42 @@
 #include "bootlib.h"
 #include "exercise.h"
 #include "munit.h"
+#include "snekstack.h"
+#include <assert.h>
 #include <stdint.h>
 
-typedef struct CoffeeShop {
-  uint64_t quality;
-  uint64_t taste;
-  uint64_t branding;
-} coffee_shop_t;
+munit_case(RUN, create_stack_small, {
+  stack_t *s = stack_new(3);
+  assert_int(s->capacity, ==, 3, "Sets capacity to 3");
+  assert_int(s->count, ==, 0, "No elements in the stack yet");
+  assert_ptr_not_null(s->data, "Allocates the stack data");
 
-munit_case(RUN, test_generic_ints, {
-  int i1 = 1234;
-  int i2 = 5678;
+  free(s->data);
+  free(s);
 
-  swap(&i1, &i2, sizeof(int));
-
-  assert_int(i1, ==, 5678, "i1 should be i2's original value");
-  assert_int(i2, ==, 1234, "i2 should be i1's original value");
-  assert_true(boot_all_freed());
+  assert(boot_all_freed());
 });
 
-munit_case(RUN, test_generic_strings, {
-  char *s1 = "dax";
-  char *s2 = "adam";
+munit_case(SUBMIT, create_stack_large, {
+  stack_t *s = stack_new(100);
+  assert_int(s->capacity, ==, 100, "Sets capacity to 100");
+  assert_int(s->count, ==, 0, "No elements in the stack yet");
+  assert_ptr_not_null(s->data, "Allocates the stack data");
 
-  swap(&s1, &s2, sizeof(char *));
-  assert_string_equal(s1, "adam", "s1 should be s2's original value");
-  assert_string_equal(s2, "dax", "s2 should be s1's original value");
-  assert_true(boot_all_freed());
-});
+  free(s->data);
+  free(s);
 
-munit_case(SUBMIT, test_generic_structs, {
-  coffee_shop_t sbucks = {2, 3, 4};
-  coffee_shop_t terminalshop = {10, 10, 10};
-
-  swap(&sbucks, &terminalshop, sizeof(coffee_shop_t));
-
-  assert_int(sbucks.quality, ==, 10,
-             "sbucks.quality should be terminalshop.quality");
-  assert_int(sbucks.taste, ==, 10, "sbucks.taste should be terminalshop.taste");
-  assert_int(sbucks.branding, ==, 10,
-             "sbucks.branding should be terminalshop.branding");
-
-  assert_int(terminalshop.quality, ==, 2,
-             "terminalshop.quality should be sbucks.quality");
-  assert_int(terminalshop.taste, ==, 3,
-             "terminalshop.taste should be sbucks.taste");
-  assert_int(terminalshop.branding, ==, 4,
-             "terminalshop.branding should be sbucks.branding");
+  assert(boot_all_freed());
 });
 
 int main() {
   MunitTest tests[] = {
-      munit_test("/generic_ints", test_generic_ints),
-      munit_test("/generic_strings", test_generic_strings),
-      munit_test("/generic_struct", test_generic_structs),
+      munit_test("/create_stack_small", create_stack_small),
+      munit_test("/create_stack_large", create_stack_large),
       munit_null_test,
   };
 
-  MunitSuite suite = munit_suite("swap", tests);
+  MunitSuite suite = munit_suite("snekstack", tests);
 
   return munit_suite_main(&suite, NULL, 0, NULL);
 }
