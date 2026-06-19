@@ -1,10 +1,9 @@
 #include "exercise.h"
-#include "munit.c"
-#include <stdio.h>
-#include <stdlib.h>
+#include "stdlib.h"
 
-char *get_full_greeting(char *greeting, char *name, int size) {
-  char full_greeting[100];
-  snprintf(full_greeting, 100, "%s %s", greeting, name);
-  return full_greeting;
+void allocate_int(int **pointer_pointer, int value) {
+  int *integer = malloc(sizeof(int));
+  *pointer_pointer = integer;
+  **pointer_pointer = value;
 }
+c

@@ -19,8 +19,9 @@
 #define munit_suite(name, tests)                                               \
   {(char *)(name), tests, NULL, 1, MUNIT_SUITE_OPTION_NONE}
 
-char *get_full_greeting(char *greeting, char *name, int size);
-
+void allocate_int(int **pointer_pointer, int value);
+#undef assert_ptr_not_null
+#define assert_ptr_not_null(ptr, msg) munit_assert_not_null(ptr)
 #define assert_int(a, op, b, msg) munit_assert_int(a, op, b)
 #undef assert_string_equal
 #define assert_string_equal(a, b, msg) munit_assert_string_equal(a, b)
