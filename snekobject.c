@@ -2,32 +2,51 @@
 #include <stdlib.h>
 #include <string.h>
 
-snek_object_t *new_snek_string(char *value) {
+snek_object_t *new_snek_array(size_t size) {
+
   snek_object_t *obj = malloc(sizeof(snek_object_t));
 
   if (obj == NULL) {
     return NULL;
   }
 
-  int size = strlen(value);
+  snek_object_t **elements = calloc(size, sizeof(snek_object_t *));
 
-  char *ptr_obj = malloc(size + 1);
-
-  if (ptr_obj == NULL) {
-    return NULL;
+  if (elements == NULL) {
     free(obj);
+    return NULL;
   }
 
-  strcpy(ptr_obj, value);
+  obj->kind = ARRAY;
 
-  obj->kind = STRING;
+  snek_array_t arr;
 
-  obj->data.v_string = ptr_obj;
+  arr.size = size;
+  arr.elements = elements;
+
+  obj->data.v_array = arr;
 
   return obj;
 }
 
 // don't touch below this line
+
+snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y,
+                                snek_object_t *z) {
+  if (x == NULL || y == NULL || z == NULL) {
+    return NULL;
+  }
+
+  snek_object_t *obj = malloc(sizeof(snek_object_t));
+  if (obj == NULL) {
+    return NULL;
+  }
+
+  obj->kind = VECTOR3;
+  obj->data.v_vector3 = (snek_vector_t){.x = x, .y = y, .z = z};
+
+  return obj;
+}
 
 snek_object_t *new_snek_integer(int value) {
   snek_object_t *obj = malloc(sizeof(snek_object_t));
@@ -48,5 +67,25 @@ snek_object_t *new_snek_float(float value) {
 
   obj->kind = FLOAT;
   obj->data.v_float = value;
+  return obj;
+}
+
+snek_object_t *new_snek_string(char *value) {
+  snek_object_t *obj = malloc(sizeof(snek_object_t));
+  if (obj == NULL) {
+    return NULL;
+  }
+
+  int len = strlen(value);
+  char *dst = malloc(len + 1);
+  if (dst == NULL) {
+    free(obj);
+    return NULL;
+  }
+
+  strcpy(dst, value);
+
+  obj->kind = STRING;
+  obj->data.v_string = dst;
   return obj;
 }
