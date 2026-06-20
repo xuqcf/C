@@ -4,14 +4,41 @@
 #include <stdlib.h>
 #include <string.h>
 
+void refcount_free(snek_object_t *obj);
+
+void refcount_dec(snek_object_t *obj) {
+  if (obj == NULL) {
+    return;
+  }
+
+  obj->refcount.v_int -= 1;
+
+  if (obj->refcount.v_int == 0) {
+    refcount_free(obj);
+  }
+}
+
+void refcount_free(snek_object_t *obj) {
+  if (obj->kind == INTEGER || obj->kind == FLOAT) {
+    free(obj);
+  } else if (obj->kind == STRING) {
+    free(obj->data.v_string);
+    free(obj);
+  } else {
+    return;
+  }
+}
+
+// don't touch below this line
+
 void refcount_inc(snek_object_t *obj) {
   if (obj == NULL) {
     return;
   }
 
-  obj->refcount.v_int += 1;
+  obj->refcount.v_int++;
+  return;
 }
-// don't touch below this line
 
 snek_object_t *_new_snek_object() {
   snek_object_t *obj = calloc(1, sizeof(snek_object_t));
