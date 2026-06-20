@@ -2,34 +2,43 @@
 #include <stdlib.h>
 #include <string.h>
 
+bool snek_array_set(snek_object_t *snek_obj, size_t index,
+                    snek_object_t *value) {
+  if (snek_obj == NULL || value == NULL) {
+    return false;
+  }
+
+  if (snek_obj->kind != ARRAY) {
+    return false;
+  }
+
+  if (index > snek_obj->data.v_array.size) {
+    return false;
+  }
+
+  snek_obj->data.v_array.elements[index] = value;
+
+  return true;
+}
+
+// don't touch below this line
+
 snek_object_t *new_snek_array(size_t size) {
-
   snek_object_t *obj = malloc(sizeof(snek_object_t));
-
   if (obj == NULL) {
     return NULL;
   }
 
   snek_object_t **elements = calloc(size, sizeof(snek_object_t *));
-
   if (elements == NULL) {
     free(obj);
     return NULL;
   }
 
   obj->kind = ARRAY;
-
-  snek_array_t arr;
-
-  arr.size = size;
-  arr.elements = elements;
-
-  obj->data.v_array = arr;
-
+  obj->data.v_array = (snek_array_t){.size = size, .elements = elements};
   return obj;
 }
-
-// don't touch below this line
 
 snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y,
                                 snek_object_t *z) {
