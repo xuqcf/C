@@ -2,30 +2,99 @@
 #include <stdlib.h>
 #include <string.h>
 
+snek_object_t *snek_add(snek_object_t *a, snek_object_t *b) {
+  if (a == NULL || b == NULL) {
+    return NULL;
+  }
+
+  if (a->kind == INTEGER) {
+    if (b->kind == INTEGER) {
+      return new_snek_integer(a->data.v_int + b->data.v_int);
+    } else if (b->kind == FLOAT) {
+      return new_snek_float(a->data.v_int + b->data.v_float);
+    } else {
+      return NULL;
+    }
+  } else if (a->kind == FLOAT) {
+    if (b->kind == INTEGER) {
+      return new_snek_float(a->data.v_float + b->data.v_int);
+    } else if (b->kind == FLOAT) {
+      return new_snek_float(a->data.v_float + b->data.v_float);
+    } else {
+      return NULL;
+    }
+  } else if (a->kind == STRING) {
+    if (b->kind != STRING) {
+      return NULL;
+    } else {
+      int size = strlen(a->data.v_string) + strlen(b->data.v_string) + 1;
+
+      char *temp = calloc(size, sizeof(char));
+
+      strcat(temp, a->data.v_string);
+      strcat(temp, b->data.v_string);
+
+      snek_object_t *result = new_snek_string(temp);
+
+      free(temp);
+
+      return result;
+    }
+  } else if (a->kind == VECTOR3) {
+    if (b->kind != VECTOR3) {
+      return NULL;
+    } else {
+      snek_object_t *new =
+          new_snek_vector3(snek_add(a->data.v_vector3.x, b->data.v_vector3.x),
+                           snek_add(a->data.v_vector3.y, b->data.v_vector3.y),
+                           snek_add(a->data.v_vector3.z, b->data.v_vector3.z));
+      return new;
+    }
+  } else if (a->kind == ARRAY) {
+    if (b->kind != ARRAY) {
+      return NULL;
+    } else {
+      snek_object_t *new =
+          new_snek_array(a->data.v_array.size + b->data.v_array.size);
+
+      for (int i = 0; i < a->data.v_array.size; i++) {
+        snek_array_set(new, i, snek_array_get(a, i)); // for a
+      }
+
+      for (int i = 0; i < b->data.v_array.size; i++) {
+        snek_array_set(new, a->data.v_array.size + i,
+                       snek_array_get(b, i)); // for b
+      }
+
+      return new;
+    }
+  } else {
+    return NULL;
+  }
+}
+
+// don't touch below this line
+
 int snek_length(snek_object_t *obj) {
   if (obj == NULL) {
     return -1;
   }
 
-  int size;
-  if (obj->kind == INTEGER) {
-    size = 1;
-  } else if (obj->kind == FLOAT) {
-    size = 1;
-  } else if (obj->kind == STRING) {
-    size = strlen(obj->data.v_string);
-  } else if (obj->kind == VECTOR3) {
-    size = 3;
-  } else if (obj->kind == ARRAY) {
-    size = obj->data.v_array.size;
-  } else {
+  switch (obj->kind) {
+  case INTEGER:
     return 1;
+  case FLOAT:
+    return 1;
+  case STRING:
+    return strlen(obj->data.v_string);
+  case VECTOR3:
+    return 3;
+  case ARRAY:
+    return obj->data.v_array.size;
+  default:
+    return -1;
   }
-
-  return size;
 }
-
-// don't touch below this line
 
 snek_object_t *new_snek_array(size_t size) {
   snek_object_t *obj = malloc(sizeof(snek_object_t));
