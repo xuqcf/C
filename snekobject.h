@@ -3,6 +3,8 @@
 
 typedef struct SnekObject snek_object_t;
 
+int snek_length(snek_object_t *obj);
+
 typedef struct {
   size_t size;
   snek_object_t **elements;
@@ -42,3 +44,4 @@ snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y,
                                 snek_object_t *z);
 snek_object_t *new_snek_array(size_t size);
 bool snek_array_set(snek_object_t *array, size_t index, snek_object_t *value);
+snek_object_t *snek_array_get(snek_object_t *array, size_t index);

@@ -2,41 +2,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-snek_object_t *snek_array_get(snek_object_t *snek_obj, size_t index) {
-  if (snek_obj == NULL) {
-    return NULL;
+int snek_length(snek_object_t *obj) {
+  if (obj == NULL) {
+    return -1;
   }
 
-  if (snek_obj->kind != ARRAY) {
-    return NULL;
+  int size;
+  if (obj->kind == INTEGER) {
+    size = 1;
+  } else if (obj->kind == FLOAT) {
+    size = 1;
+  } else if (obj->kind == STRING) {
+    size = strlen(obj->data.v_string);
+  } else if (obj->kind == VECTOR3) {
+    size = 3;
+  } else if (obj->kind == ARRAY) {
+    size = obj->data.v_array.size;
+  } else {
+    return 1;
   }
 
-  if (index >= snek_obj->data.v_array.size) {
-    return NULL;
-  }
-
-  return snek_obj->data.v_array.elements[index];
+  return size;
 }
 
 // don't touch below this line
-
-bool snek_array_set(snek_object_t *snek_obj, size_t index,
-                    snek_object_t *value) {
-  if (snek_obj == NULL || value == NULL) {
-    return false;
-  }
-
-  if (snek_obj->kind != ARRAY) {
-    return false;
-  }
-
-  if (index >= snek_obj->data.v_array.size) {
-    return false;
-  }
-
-  snek_obj->data.v_array.elements[index] = value;
-  return true;
-}
 
 snek_object_t *new_snek_array(size_t size) {
   snek_object_t *obj = malloc(sizeof(snek_object_t));
@@ -53,6 +42,39 @@ snek_object_t *new_snek_array(size_t size) {
   obj->kind = ARRAY;
   obj->data.v_array = (snek_array_t){.size = size, .elements = elements};
   return obj;
+}
+
+bool snek_array_set(snek_object_t *array, size_t index, snek_object_t *value) {
+  if (array == NULL || value == NULL) {
+    return false;
+  }
+
+  if (array->kind != ARRAY) {
+    return false;
+  }
+
+  if (index >= array->data.v_array.size) {
+    return false;
+  }
+
+  array->data.v_array.elements[index] = value;
+  return true;
+}
+
+snek_object_t *snek_array_get(snek_object_t *array, size_t index) {
+  if (array == NULL) {
+    return NULL;
+  }
+
+  if (array->kind != ARRAY) {
+    return NULL;
+  }
+
+  if (index >= array->data.v_array.size) {
+    return NULL;
+  }
+
+  return array->data.v_array.elements[index];
 }
 
 snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y,
