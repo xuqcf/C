@@ -4,39 +4,89 @@
 #include <stdlib.h>
 #include <string.h>
 
-void refcount_free(snek_object_t *obj);
-
-void refcount_dec(snek_object_t *obj) {
-  if (obj == NULL) {
-    return;
+bool snek_array_set(snek_object_t *snek_obj, size_t index,
+                    snek_object_t *value) {
+  if (snek_obj == NULL || value == NULL) {
+    return false;
+  }
+  if (snek_obj->kind != ARRAY) {
+    return false;
+  }
+  if (index >= snek_obj->data.v_array.size) {
+    return false;
+  }
+  if (snek_obj->data.v_array.elements[index]) {
+    refcount_dec(snek_obj->data.v_array.elements[index]);
   }
 
-  obj->refcount.v_int -= 1;
-
-  if (obj->refcount.v_int == 0) {
-    refcount_free(obj);
-  }
+  snek_obj->data.v_array.elements[index] = value;
+  refcount_inc(value);
+  return true;
 }
 
 void refcount_free(snek_object_t *obj) {
-  if (obj->kind == INTEGER || obj->kind == FLOAT) {
-    free(obj);
-  } else if (obj->kind == STRING) {
+  switch (obj->kind) {
+  case INTEGER:
+  case FLOAT:
+    break;
+  case STRING:
     free(obj->data.v_string);
-    free(obj);
-  } else {
-    return;
+    break;
+  case VECTOR3: {
+    snek_vector_t vec = obj->data.v_vector3;
+    refcount_dec(vec.x);
+    refcount_dec(vec.y);
+    refcount_dec(vec.z);
+    break;
   }
+  case ARRAY: {
+    for (int i = 0; i < obj->data.v_array.size; i++) {
+      refcount_dec(obj->data.v_array.elements[i]);
+    }
+    free(obj->data.v_array.elements);
+    break;
+  }
+  default:
+    assert(false);
+  }
+  free(obj);
 }
 
 // don't touch below this line
+
+snek_object_t *snek_array_get(snek_object_t *snek_obj, size_t index) {
+  if (snek_obj == NULL) {
+    return NULL;
+  }
+
+  if (snek_obj->kind != ARRAY) {
+    return NULL;
+  }
+
+  if (index >= snek_obj->data.v_array.size) {
+    return NULL;
+  }
+
+  return snek_obj->data.v_array.elements[index];
+}
 
 void refcount_inc(snek_object_t *obj) {
   if (obj == NULL) {
     return;
   }
 
-  obj->refcount.v_int++;
+  obj->refcount++;
+  return;
+}
+
+void refcount_dec(snek_object_t *obj) {
+  if (obj == NULL) {
+    return;
+  }
+  obj->refcount--;
+  if (obj->refcount == 0) {
+    return refcount_free(obj);
+  }
   return;
 }
 
@@ -46,7 +96,7 @@ snek_object_t *_new_snek_object() {
     return NULL;
   }
 
-  obj->refcount.v_int = 1;
+  obj->refcount = 1;
 
   return obj;
 }
@@ -65,23 +115,6 @@ snek_object_t *new_snek_array(size_t size) {
 
   obj->kind = ARRAY;
   obj->data.v_array = (snek_array_t){.size = size, .elements = elements};
-
-  return obj;
-}
-
-snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y,
-                                snek_object_t *z) {
-  if (x == NULL || y == NULL || z == NULL) {
-    return NULL;
-  }
-
-  snek_object_t *obj = _new_snek_object();
-  if (obj == NULL) {
-    return NULL;
-  }
-
-  obj->kind = VECTOR3;
-  obj->data.v_vector3 = (snek_vector_t){.x = x, .y = y, .z = z};
 
   return obj;
 }
@@ -125,5 +158,22 @@ snek_object_t *new_snek_string(char *value) {
 
   obj->kind = STRING;
   obj->data.v_string = dst;
+  return obj;
+}
+
+snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y,
+                                snek_object_t *z) {
+  if (x == NULL || y == NULL || z == NULL) {
+    return NULL;
+  }
+  snek_object_t *obj = _new_snek_object();
+  if (obj == NULL) {
+    return NULL;
+  }
+  obj->kind = VECTOR3;
+  obj->data.v_vector3 = (snek_vector_t){.x = x, .y = y, .z = z};
+  refcount_inc(x);
+  refcount_inc(y);
+  refcount_inc(z);
   return obj;
 }
